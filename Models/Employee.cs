@@ -20,7 +20,8 @@ namespace EmployeePortal.Models
         public string Position { get; set; }
 
         [Required(ErrorMessage = "Department is required")]
-        public Department? Department { get; set; }
+        public int DepartmentId { get; set; }
+        public DepartmentEntity Department { get; set; }
         [Required(ErrorMessage = "Hire Date is required")]
         [Display(Name = "Hire Date")]
         [DataType(DataType.Date, ErrorMessage = "Invalid date format")]
@@ -34,7 +35,8 @@ namespace EmployeePortal.Models
 
         [Required(ErrorMessage = "Employee Type is required")]
         [Display(Name = "Employee Type")]
-        public EmployeeType? Type { get; set; }
+        public int EmployeeTypeId { get; set; }
+        public EmployeeTypeEntity? Type { get; set; }
         [Required(ErrorMessage = "Gender is required")]
         [StringLength(6, ErrorMessage = "Gender should be Male, Female, or Other")]
         public string? Gender { get; set; }

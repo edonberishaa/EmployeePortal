@@ -1,149 +1,130 @@
 ﻿using EmployeePortal.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Reflection;
 
 namespace EmployeePortal.Controllers
 {
     public class EmployeeController : Controller
     {
         private readonly EmployeeService _employeeService;
-        public EmployeeController()
-        {
-            _employeeService = new EmployeeService();
-        }
-        [HttpGet]
-        public async Task<IActionResult> List(
-            [FromQuery] string SearchTerm,
-            [FromQuery] string SelectedDepartment,
-            [FromQuery] string SelectedType,
-            [FromQuery] int PageNumber = 1,
-            [FromQuery] int PageSize = 5
-            )
-        {
-            var (employees,totalCount) = await _employeeService.GetEmployees(SearchTerm
-                ,SelectedDepartment, SelectedType, PageNumber, PageSize);
 
-            var viewModel = new EmployeeListViewModel
+        public EmployeeController(EmployeeService employeeService)
+        {
+            _employeeService = employeeService;
+        }
+
+        public async Task<IActionResult> List(string searchTerm, string selectedDepartment, string selectedType, int page = 1)
+        {
+            int pageSize = 5;
+
+            var (employees, totalCount) = await _employeeService.GetEmployees(
+                searchTerm, selectedDepartment, selectedType, page, pageSize);
+
+            ViewData["TotalPages"] = (int)Math.Ceiling((double)totalCount / pageSize);
+            ViewData["CurrentPage"] = page;
+            ViewData["SearchTerm"] = searchTerm;
+            ViewData["SelectedDepartment"] = selectedDepartment;
+            ViewData["SelectedType"] = selectedType;
+
+            return View(new EmployeeListViewModel
             {
                 Employees = employees,
-                PageNumber = PageNumber,
-                PageSize = PageSize,
-                TotalPages = (int)Math.Ceiling((double)totalCount / PageSize),
-                SearchTerm = SearchTerm,
-                SelectedDeparment = SelectedDepartment,
-                SelectedType = SelectedType
-            };
-            GetSelectLists();
-            ViewBag.PageSizeOptions = new SelectList(new List<int>
-            {
-                3,5,10,15,20,25
-            }, PageSize);
-            return View(viewModel);
+                PageNumber = page,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+                SearchTerm = searchTerm,
+                SelectedDeparment = selectedDepartment,
+                SelectedType = selectedType
+            });
         }
-        [HttpGet]
-        public IActionResult Create()
+
+        public IActionResult AddEmployee()
         {
             GetSelectLists();
-            return View();
+            return View(new Employee());
         }
 
         [HttpPost]
-        public IActionResult Create([FromForm] Employee employee)
+        public async Task<IActionResult> AddEmployee([FromForm] Employee employee)
         {
             if (ModelState.IsValid)
             {
-                _employeeService.CreateEmployee(employee);
-                return RedirectToAction("Success",new { id = employee.Id});
+                await _employeeService.CreateEmployee(employee);
+                return RedirectToAction("Success", new { id = employee.Id });
             }
+
             GetSelectLists();
             return View(employee);
         }
-        public IActionResult Success([FromRoute] int id)
+
+        public async Task<IActionResult> Update(int id)
         {
-            var employee = _employeeService.GetEmployeeById(id);
-            if(employee == null)
-            {
-                return NotFound();
-            }
-            return View(employee);
-        }
-        public IActionResult Details([FromRoute] int id)
-        {
-            var employee = _employeeService.GetEmployeeById(id);
+            var employee = await _employeeService.GetEmployeeById(id);
             if (employee == null)
             {
                 return NotFound();
             }
-            return View(employee);
-        }
-        [HttpGet]
-        public IActionResult Update([FromRoute] int id)
-        {
-            // Retrieve the employee by ID and prepare the Update view
-            var employee = _employeeService.GetEmployeeById(id);
-            if (employee == null)
-            {
-                return NotFound();
-            }
-            // Prepare dropdown options before rendering the Update view
+
             GetSelectLists();
             return View(employee);
         }
 
         [HttpPost]
-        public IActionResult Update([FromForm] Employee employee)
+        public async Task<IActionResult> Update([FromForm] Employee employee)
         {
             if (ModelState.IsValid)
             {
-                _employeeService.UpdateEmployee(employee);
-                TempData["Message"] = $"Employee with ID {employee.Id} and Name {employee.FullName} has been updated.";
-                return RedirectToAction("List");
+                await _employeeService.UpdateEmployee(employee);
+                return RedirectToAction("Success", new { id = employee.Id });
             }
+
             GetSelectLists();
             return View(employee);
         }
 
-        [HttpGet]
-        public IActionResult Delete([FromRoute] int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var employee = _employeeService.GetEmployeeById(id);
+            var employee = await _employeeService.GetEmployeeById(id);
             if (employee == null)
             {
                 return NotFound();
             }
+
             return View(employee);
         }
 
-        [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed([FromRoute] int id)
+        [HttpPost]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var employee = _employeeService.GetEmployeeById(id);
+            await _employeeService.DeleteEmployee(id);
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var employee = await _employeeService.GetEmployeeById(id);
             if (employee == null)
             {
                 return NotFound();
             }
-            _employeeService.DeleteEmployee(id);
-            TempData["Message"] = $"Employee with ID {id} and Name {employee.FullName} has been deleted.";
-            return RedirectToAction("List");
+
+            return View(employee);
         }
 
-        [HttpGet]
-        public JsonResult GetPositions(Department department)
+        public async Task<IActionResult> Success(int id)
         {
-            var positions = new Dictionary<Department, List<string>>
+            var employee = await _employeeService.GetEmployeeById(id);
+            if (employee == null)
             {
-                { Department.IT, new List<string> { "Software Developer", "System Administrator", "Network Engineer" } },
-                { Department.HR, new List<string> { "HR Specialist", "HR Manager", "Talent Acquisition Coordinator" } },
-                { Department.Sales, new List<string> { "Sales Executive", "Sales Manager", "Account Executive" } },
-                { Department.Admin, new List<string> { "Office Manager", "Executive Assistant", "Receptionist" } }
-            };
-            var result = positions.ContainsKey(department) ? positions[department] : new List<string>();
-            return Json(result);
+                return NotFound();
+            }
+
+            return View(employee);
         }
+
         private void GetSelectLists()
         {
-            ViewBag.DepartmentOptions = new SelectList(Enum.GetValues(typeof(Department)).Cast<Department>());
-            ViewBag.EmployeeTypeOptions = new SelectList(Enum.GetValues(typeof(EmployeeType)).Cast<EmployeeType>());
+            ViewData["Departments"] = Enum.GetValues(typeof(Department)).Cast<Department>();
+            ViewData["Types"] = Enum.GetValues(typeof(EmployeeType)).Cast<EmployeeType>();
         }
     }
 }
