@@ -30,7 +30,7 @@
                             </tr>
                             <tr>
                                 <th class="text-muted text-start">🏢 Department:</th>
-                                <td class="fw-bold text-dark text-start ps-2">@Model.Department</td>
+                                <td class="fw-bold text-dark text-start ps-2">@Model.Department.Name</td>
                             </tr>
                             <tr>
                                 <th class="text-muted text-start">🗓️ Hire Date:</th>
@@ -42,7 +42,7 @@
                             </tr>
                             <tr>
                                 <th class="text-muted text-start">👔 Employee Type:</th>
-                                <td class="fw-bold text-dark text-start ps-2">@Model.Type</td>
+                                <td class="fw-bold text-dark text-start ps-2">@Model.Type.Name</td>
                             </tr>
                             <tr>
                                 <th class="text-muted text-start">💰 Salary:</th>
@@ -53,9 +53,9 @@
                 </div>
 
                 <div class="text-center mt-4">
-                    <form asp-action="Delete" asp-controller="Employee" method="post">
+                    <form asp-action="Delete">
                         <input type="hidden" asp-for="Id" />
-                        <button type="submit" class="btn btn-danger btn-lg me-3"><i class="bi bi-trash-fill"></i> Yes, Delete</button>
+                        <button type="submit" value="Delete" class="btn btn-danger btn-lg me-3"><i class="bi bi-trash-fill"></i> Yes, Delete</button>
                         <a class="btn btn-outline-success btn-lg" asp-controller="Employee" asp-action="List"><i class="bi bi-arrow-left-circle-fill"></i> Cancel</a>
                     </form>
                 </div>

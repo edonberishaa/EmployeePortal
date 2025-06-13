@@ -79,9 +79,9 @@
                                     <td>@employee.FullName</td>
                                     <td>@employee.Email</td>
                                     <td>@employee.Position</td>
-                                    <td>@employee.Department</td>
+                                    <td>@employee.Department.Name</td>
                                     <td>@employee.Gender</td>
-                                    <td>@employee.Type</td>
+                                    <td>@employee.Type.Name</td>
                                     <td class="text-center">
                                         <a class="btn btn-sm btn-info" asp-controller="Employee" asp-action="Details" asp-route-id="@employee.Id">
                                             <i class="bi bi-eye"></i> Details

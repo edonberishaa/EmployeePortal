@@ -7,6 +7,7 @@ namespace EmployeePortal.Models
     {
         private readonly ApplicationDbContext _context;
 
+
         public EmployeeService(ApplicationDbContext context)
         {
             _context = context;
@@ -19,27 +20,27 @@ namespace EmployeePortal.Models
             int pageNumber,
             int pageSize)
         {
+
             var filteredEmployees = _context.Employees.AsQueryable();
 
             // Search by name
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 filteredEmployees = filteredEmployees
-                    .Where(p => p.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                    .Where(p => p.FullName.Contains(searchTerm.ToLower()));
             }
 
             // Filter by department (enum)
-            if (!string.IsNullOrEmpty(selectedDepartment) && Enum.TryParse<Department>(selectedDepartment, out var departmentEnum))
+            if (int.TryParse(selectedDepartment, out int departmentId))
             {
                 filteredEmployees = filteredEmployees
-                    .Where(p => p.DepartmentId == (int)departmentEnum);
+                    .Where(p => p.DepartmentId == departmentId);
             }
 
-            // Filter by employee type (enum)
-            if (!string.IsNullOrEmpty(selectedType) && Enum.TryParse<EmployeeType>(selectedType, out var typeEnum))
+            if (int.TryParse(selectedType, out int typeId))
             {
                 filteredEmployees = filteredEmployees
-                    .Where(p => p.EmployeeTypeId == (int)typeEnum);
+                    .Where(p => p.EmployeeTypeId == typeId);
             }
 
             int totalCount = await filteredEmployees.CountAsync();
@@ -58,41 +59,6 @@ namespace EmployeePortal.Models
                 .Include(e => e.Department)         // optional: eager loading
                 .Include(e => e.Type)         // optional: if needed
                 .FirstOrDefaultAsync(e => e.Id == id);
-        }
-
-        public async Task CreateEmployee(Employee employee)
-        {
-            await _context.Employees.AddAsync(employee);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateEmployee(Employee employee)
-        {
-            var existingEmployee = await GetEmployeeById(employee.Id);
-            if (existingEmployee != null)
-            {
-                existingEmployee.FullName = employee.FullName;
-                existingEmployee.Email = employee.Email;
-                existingEmployee.Position = employee.Position;
-                existingEmployee.DepartmentId = employee.DepartmentId;
-                existingEmployee.HireDate = employee.HireDate;
-                existingEmployee.DateOfBirth = employee.DateOfBirth;
-                existingEmployee.EmployeeTypeId = employee.EmployeeTypeId;
-                existingEmployee.Gender = employee.Gender;
-                existingEmployee.Salary = employee.Salary;
-
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task DeleteEmployee(int id)
-        {
-            var employee = await GetEmployeeById(id);
-            if (employee != null)
-            {
-                _context.Employees.Remove(employee);
-                await _context.SaveChangesAsync();
-            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmployeePortal.Models
 {
@@ -20,6 +21,7 @@ namespace EmployeePortal.Models
         public string Position { get; set; }
 
         [Required(ErrorMessage = "Department is required")]
+        [Column("Department")]
         public int DepartmentId { get; set; }
         public DepartmentEntity Department { get; set; }
         [Required(ErrorMessage = "Hire Date is required")]
@@ -35,6 +37,9 @@ namespace EmployeePortal.Models
 
         [Required(ErrorMessage = "Employee Type is required")]
         [Display(Name = "Employee Type")]
+        [Column("Type")]
+        [ForeignKey("Type")] 
+
         public int EmployeeTypeId { get; set; }
         public EmployeeTypeEntity? Type { get; set; }
         [Required(ErrorMessage = "Gender is required")]
